@@ -28,6 +28,7 @@ for i = windowsize+1:length(Green_returns)
 end
 return_portfolio = DataFrame(col1 = return_portfolio)
 
+#VaR and ES forecast plots
 var_es_plot = begin
     plot(Green[1511:2090, 1], return_portfolio[:,1], color=:black, label=false, title="BB7 Copula")
     xlabel!("Time")
