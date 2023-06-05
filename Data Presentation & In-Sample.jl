@@ -154,7 +154,6 @@ p_val2 <- coeftest(model22)[4]
 @rget t_val1 t_val2 p_val1 p_val2
 [t_val1, t_val2, p_val1, p_val2]
 
-
 #Histograms of t-innovations
 hist_standres_nee = Plots.histogram(nee_res, normalize=:pdf, label="Innovations")
 dist_test = TDist(5.41935)
@@ -314,7 +313,6 @@ X_gumbel, Y_gumbel = resample_data(GumbelCopula, mean(p_gumbel), 10000, model_ch
 X_bb7, Y_bb7 = resample_data_2var(BB7Copula, p1_bb7, p2_bb7, 10000, model_chen_dist, model_chen, model_shell_dist, model_shell)
 X_gaus, Y_gaus = resample_data(BivariateGaussianCopula, mean(p_gaus), 10000, model_chen_dist, model_chen, model_shell_dist, model_shell)
 X_t, Y_t = resample_data_2var(BivariateTCopula, p1_t, p2_t, 10000, model_chen_dist, model_chen, model_shell_dist, model_shell)
-
 
 scatter_gaus = begin
     scatter(X_gaus, Y_gaus, label=false)
