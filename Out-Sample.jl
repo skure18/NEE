@@ -46,6 +46,9 @@ end
 
 #GED and T DQ, for 1% VaR
 DQ_func(Test_1p, 0.01, 4)
+DQ_func(Test, 0.05, 4)
+DQ_func(Test_t_1p, 0.01, 4)
+DQ_func(Test_t, 0.05, 4)
 
 #MZ GED and T
 # Use esback package in R to compute accuracy of ES by Mincer Zarnowitz. Low p-value means we reject the null-hypothesis of predicted = actual
