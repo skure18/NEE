@@ -10,13 +10,13 @@ closebp = BP[:,5]
 diffnee = diff(log.(closenee))
 diffbp = diff(log.(diffbp))
 
-# Risk Forecasting Procedure
+#Risk forecasting procedure
 windowsize = 1510
 chainsize = 1000
 N = 100000
 Test = Risk(closenee, closebp, windowsize, chainsize, N)
 
-#DQ Test
+#Portfolio return
 return_portfolio = zeros(length(diffnee)-windowsize)
 for i = windowsize+1:length(diffnee)
     Green_closer = closenee[i-1]
@@ -45,14 +45,13 @@ var_es_plot_t = begin
     plot!(Green[1511:2090, 1], -Test_t[:, "ES_ali"], color=:red, label=false)
 end
 
-#GED and T DQ, for 1% VaR
+#DQ test
 DQ_func(Test_1p, 0.01, 4)
 DQ_func(Test, 0.05, 4)
 DQ_func(Test_t_1p, 0.01, 4)
 DQ_func(Test_t, 0.05, 4)
 
-#ESR GED and T
-# Use esback package in R to compute accuracy of ES by Mincer Zarnowitz. Low p-value means we reject the null-hypothesis of predicted = actual
+#ESR test
 ESR1 = es_accuracy(Test_1p, 0.01)
 ESR2 = es_accuracy(Test, 0.05)
 ESR3 = es_accuracy(Test_t_1p, 0.01)
@@ -60,14 +59,13 @@ ESR4 = es_accuracy(Test_t, 0.05)
 
 ESRs = DataFrame([ESR1[!,1] ESR2[!,1] ESR3[!,1] ESR4[!,1]], :auto)
 
-# Loss functions GED
+#Loss functions
 Loss_1p = FZL_QL_matrix(Test_1p, 0.01)
 Loss_5p = FZL_QL_matrix(Test, 0.05)
 Loss_t_1p = FZL_QL_matrix(Test_t_1p, 0.01)
 Loss_t_5p = FZL_QL_matrix(Test_t, 0.05)
 
-# Model confidence set GED
-#1% VaR and ES
+#MCS
 mcs_ged = MCSs(Loss_1p, Loss_5p)
 mcs_t = MCSs(Loss_t_1p, Loss_t_5p)
 
