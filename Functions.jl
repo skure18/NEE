@@ -48,7 +48,7 @@ function LE_plot(series, demean = true)
     plot!(ccf_series_neg, label="Negative", color="Red")
 end
 
-#Simulated log returns
+#Simulating log returns
 function sim_logreturns(modelnee, modelbp, X, Y)
     nee_hat = predict(modelnee, :return) .+ predict(modelnee, :volatility) .* X
     bp_hat = predict(modelbp, :return) .+ predict(modelbp, :volatility) .* Y
