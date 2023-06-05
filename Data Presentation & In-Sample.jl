@@ -125,11 +125,11 @@ library(TSA)
 library(MTS)
 library(lmtest)
 
-# Fit the ARMAX model with the exogenous variable
+#Fit the ARMAX model with the exogenous variable
 model21 <- arima(Y, order = c(3, 0, 3), fixed = c(intercept = int1, ar11 = phi11, ar2 = phi12, ar3 = phi13, ma1 = kappa11, ma2 = kappa12, ma3 = kappa13, NA), xreg = X, method = 'ML')
 model22 <- arima(X, order = c(2, 0, 2), fixed = c(intercept = int2, ar21 = phi21, ar22 = phi22, ma21 = kappa21, ma22 = kappa22, NA), xreg = Y, method = 'ML')
 
-# Wald test for coefficient of xreg being zero: p-values lower than 0.05 indicates the xreg coefficient is non-zero.
+#Wald test for coefficient of xreg being zero: p-values lower than 0.05 indicates the xreg coefficient is non-zero.
 t_val1 <- coeftest(model21)[3]
 p_val1 <- coeftest(model21)[4]
 t_val2 <- coeftest(model22)[3]
