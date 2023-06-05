@@ -1,6 +1,6 @@
 using MarketData, DataFrames, Plots, ARCHModels, Distributions, Turing, BivariateCopulas, StatsPlots, ProgressBars, Statistics, HypothesisTests, ForecastEval, Optim, CSV, PlutoUI, MessyTimeSeries, ForecastPlots, Statsbase, StatsPlots, TimeSeries, GLM
 
-#ADF of prices
+#ADF test of prices
 function ADF_test(series,lags = 10)
     p = zeros(lags)
     for i in 1:lags
@@ -10,7 +10,7 @@ function ADF_test(series,lags = 10)
     hline!([0.05], color=:blue)   
 end
 
-#Ljung Box Test
+#Ljung-Box Test
 function LBT_plot(stock, lag)
     x = zeros(10, 1)
     for i in 1:lag
@@ -48,13 +48,14 @@ function LE_plot(series, demean = true)
     plot!(ccf_series_neg, label="Negative", color="Red")
 end
 
-#Simulated log-returns
+#Simulated log returns
 function sim_logreturns(modelnee, modelbp, X, Y)
     nee_hat = predict(modelnee, :return) .+ predict(modelnee, :volatility) .* X
     bp_hat = predict(modelbp, :return) .+ predict(modelbp, :volatility) .* Y
     nee_hat, bp_hat
 end
-
+        
+#Best model selecting
 function best_model(returns)
     fit_sT = selectmodel(GARCH, returns; meanspec=ARMA, criterion=aic, dist=StdT, maxlags=3)
     fit_sN = selectmodel(GARCH, returns; meanspec=ARMA, criterion=aic, dist=StdNormal, maxlags=3)
@@ -98,7 +99,7 @@ function best_model(returns)
     return([best_fit, best_dist])
 end
 
-#Fix GED
+#Best model selecting with only GED
 #function best_model(returns)
 #    fit_sGED = selectmodel(GARCH, returns; meanspec=ARMA, criterion=aic, dist=StdT, maxlags=3)
 #    fit_tGED = selectmodel(TGARCH, returns; meanspec=ARMA, criterion=aic, dist=StdT, maxlags=3)
@@ -113,7 +114,7 @@ end
 #    return([best_fit, best_dist])
 #end
 
-# For step (c) + (d)
+#Forecasting procedure step (c) + (d)
 function resample_data(copula, par, n, best_dist_1, fit_1, best_dist_2, fit_2)
     Û = rand(copula(par),n)
     if best_dist_1 == TDist
@@ -154,7 +155,7 @@ function resample_data_2var(copula, par1, par2, n, best_dist_1, fit_1, best_dist
     (X̂,Ŷ)
 end
  
-# Copula functions for estimation
+#Copula functions for estimation
 @model function fit_Gaussian_copula(W; ɛ = 1e-6)
     x ~ Uniform(ɛ,1-ɛ) 
     p1 = 2*x-1  
@@ -163,7 +164,7 @@ end
     end
 end
  
-# T does not work
+#T does not work
 @model function fit_T_copula(W; ɛ = 1e-6)
     x ~ Uniform(ɛ,1-ɛ) 
     y ~ Uniform(ɛ,1-ɛ)
@@ -237,7 +238,7 @@ end
     end
 end
 
-# VaR
+#VaR
 function Var(P, alpha = 0.05)
     sort_P = sort(P)
     k = floor(Int, length(sort_P) * alpha)
@@ -245,7 +246,7 @@ function Var(P, alpha = 0.05)
     VaR
 end
 
-# ES
+#ES
 function es(P, alpha = 0.05)
     sort_P = sort(P)
     k = floor(Int, length(sort_P) * alpha)
@@ -257,14 +258,14 @@ function es(P, alpha = 0.05)
     ES
 end
 
-# simulated log-returns
+#Simulating log-returns
 function sim_logreturns(fit_1, fit_2, z1, z2)
     y1 = predict(fit_1, :return) .+ predict(fit_1, :volatility) .* z1
     y2 = predict(fit_2, :return) .+ predict(fit_2, :volatility) .* z2
     y1, y2
 end
 
-# Risk Forecasting Procedure - Outsample
+#Risk forecasting procedure - out-sample
 function Risk(close_1, close_2, windowsize, chainsize, simulations)
     returns_1 = diff(log.(close_1))
     returns_2 = diff(log.(close_2))
@@ -306,7 +307,6 @@ function Risk(close_1, close_2, windowsize, chainsize, simulations)
         end
         
         w = [u'; v']
-
 
         Gaussian_chain = sample(fit_Gaussian_copula(w), NUTS(), chainsize)
         p1 = 2 .* vec(Gaussian_chain[:x]) .- 1  
@@ -408,6 +408,7 @@ function Risk(close_1, close_2, windowsize, chainsize, simulations)
    DataFrames.rename!(Risks_df, [:VaR_gauss, :ES_gauss, :P_gauss, :VaR_T, :ES_T, :P_T_mean, :VaR_frank, :ES_frank, :P_frank, :VaR_gumbel, :ES_gumbel, :P_gumbel, :VaR_clayton, :ES_clayton, :P_clayton, :VaR_joe, :ES_joe, :P_joe, :VaR_bb7, :ES_bb7, :P_bb7_mean, :VaR_ali, :ES_ali, :P_ali])
 end
 
+#DQ test
 function DQ_func(risk_df, alpha, lag)
     Test_t_1p = risk_df
     DQ_vec_ged = [pvalue(DQTest(return_portfolio[:, 1], Test_t_1p[:, "VaR_gauss"], alpha, lag)), pvalue(DQTest(return_portfolio[:, 1], Test_t_1p[:, "VaR_T"], alpha, lag)), pvalue(DQTest(return_portfolio[:, 1], 
@@ -416,6 +417,7 @@ function DQ_func(risk_df, alpha, lag)
     Test_t_1p[:, "VaR_joe"], alpha, lag)), pvalue(DQTest(return_portfolio[:, 1], Test_t_1p[:, "VaR_bb7"], alpha, lag)), pvalue(DQTest(return_portfolio[:, 1], Test_t_1p[:, "VaR_ali"], alpha, lag))]
 end
 
+#ES test            
 function es_accuracy(risk_df, alpha)
     Test_t_1p = risk_df
     R"
@@ -434,7 +436,7 @@ function es_accuracy(risk_df, alpha)
     @rget MZ_vec2
 end
 
-# Loss functions
+#Loss functions
 function FZL_loss(y::Vector{T}, var_hat::Vector{Float64}, es_hat::Vector{Float64}, alpha::Float64) where T<:Real
     diff = y + var_hat
     h = length(y)
@@ -470,6 +472,7 @@ function FZL_QL_matrix(risk_df, alpha)
     return([FZL_gauss FZL_t FZL_frank FZL_gumbel FZL_clayton FZL_joe FZL_bb7 FZL_ali], [QL_gauss QL_t QL_frank QL_gumbel QL_clayton QL_joe QL_bb7 QL_ali])
 end
 
+#Help function for MCS                               
 function fillvectors(x, y, fillvalue=missing)
     xl = length(x)
     yl = length(y)
@@ -487,7 +490,8 @@ function fillvectors(x, y, fillvalue=missing)
     end
     return x, y
 end
-#1% VaR and ES
+                                                    
+#MCS
 function MCSs(LossMatrix_1p, LossMatrix_5p)
     Loss_1p = LossMatrix_1p
     Loss_5p = LossMatrix_5p
@@ -509,7 +513,7 @@ function MCSs(LossMatrix_1p, LossMatrix_5p)
 
     return([mcs_FZL_1p_1 mcs_FZL_1p_5 mcs_FZL_1p_25 mcs_FZL_5p_1 mcs_FZL_5p_5 mcs_FZL_5p_25 mcs_QL_1p_1 mcs_QL_1p_5 mcs_QL_1p_25 mcs_QL_5p_1 mcs_QL_5p_5 mcs_QL_5p_25])
 end
-
+                                                    
 function Big_MCSs(LossMatrix_1p_ged, LossMatrix_5p_ged, LossMatrix_1p_t, LossMatrix_5p_t)
     x = zeros(16)
     mcs_FZL_1p_1 = fillvectors(x, ForecastEval.mcs([LossMatrix_1p_ged[1] LossMatrix_1p_t[1]]; alpha=0.01).inMT)[2]
