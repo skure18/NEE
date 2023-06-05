@@ -258,7 +258,7 @@ function es(P, alpha = 0.05)
     ES
 end
 
-#Simulating log-returns
+#Simulating log returns
 function sim_logreturns(fit_1, fit_2, z1, z2)
     y1 = predict(fit_1, :return) .+ predict(fit_1, :volatility) .* z1
     y2 = predict(fit_2, :return) .+ predict(fit_2, :volatility) .* z2
