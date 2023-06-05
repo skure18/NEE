@@ -51,14 +51,14 @@ DQ_func(Test, 0.05, 4)
 DQ_func(Test_t_1p, 0.01, 4)
 DQ_func(Test_t, 0.05, 4)
 
-#MZ GED and T
+#ESR GED and T
 # Use esback package in R to compute accuracy of ES by Mincer Zarnowitz. Low p-value means we reject the null-hypothesis of predicted = actual
-MZ1 = es_accuracy(Test_1p, 0.01)
-MZ2 = es_accuracy(Test, 0.05)
-MZ3 = es_accuracy(Test_t_1p, 0.01)
-MZ4 = es_accuracy(Test_t, 0.05)
+ESR1 = es_accuracy(Test_1p, 0.01)
+ESR2 = es_accuracy(Test, 0.05)
+ESR3 = es_accuracy(Test_t_1p, 0.01)
+ESR4 = es_accuracy(Test_t, 0.05)
 
-MZs = DataFrame([MZ1[!,1] MZ2[!,1] MZ3[!,1] MZ4[!,1]], :auto)
+ESRs = DataFrame([ESR1[!,1] ESR2[!,1] ESR3[!,1] ESR4[!,1]], :auto)
 
 # Loss functions GED
 Loss_1p = FZL_QL_matrix(Test_1p, 0.01)
