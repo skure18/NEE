@@ -7,7 +7,7 @@ BP = DataFrames.DataFrame(yahoo("BP", YahooOpt(period1=DateTime(2015, 1, 1), per
 closenee = NEE[:,5]
 closebp = BP[:,5]
 
-diffne = diff(log.(closenee))
+diffnee = diff(log.(closenee))
 diffbp = diff(log.(diffbp))
 
 # Risk Forecasting Procedure
