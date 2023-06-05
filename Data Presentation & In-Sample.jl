@@ -107,9 +107,70 @@ lbt_bp_sqrd = LBT_plot(shell_res.^2, 10)
 lbt_bp_sqrd = xlabel!("Lag")
 lbt_bp_sqrd = ylabel!("p-value")
 
-#Fail to reject no lingering GARCH effect - very nice
+#Fail to reject no lingering GARCH effect
 ARCHLMTest(chen_res, 1)
 ARCHLMTest(shell_res, 1)
+
+#Test for cross-equation effects
+modelone = best_model(diffchen)
+modeltwo = best_model(diffshell)
+model1 = modelone[1]
+model2 = modeltwo[1]
+
+int1 = model1.meanspec.coefs[1]
+phi11 = model1.meanspec.coefs[2]
+phi12 = model1.meanspec.coefs[3]
+phi13 = model1.meanspec.coefs[4]
+kappa11 = model1.meanspec.coefs[5]
+kappa12 = model1.meanspec.coefs[6]
+kappa13 = model1.meanspec.coefs[7]
+
+int2 = model2.meanspec.coefs[1]
+phi21 = model2.meanspec.coefs[2]
+phi22 = model2.meanspec.coefs[3]
+kappa21 = model2.meanspec.coefs[4]
+kappa22 = phi22 = model2.meanspec.coefs[5]
+
+Y = Green_returns
+X = Brown_returns
+
+@rput Y X int1 int2 phi11 phi12 phi13 phi21 phi22 kappa11 kappa12 kappa13 kappa21 kappa22
+
+R"
+library(TSA)
+library(MTS)
+library(lmtest)
+
+# Fit the ARMAX model with the exogenous variable
+model21 <- arima(Y, order = c(3, 0, 3), fixed = c(intercept = int1, ar11 = phi11, ar2 = phi12, ar3 = phi13, ma1 = kappa11, ma2 = kappa12, ma3 = kappa13, NA), xreg = X, method = 'ML')
+model22 <- arima(X, order = c(2, 0, 2), fixed = c(intercept = int2, ar21 = phi21, ar22 = phi22, ma21 = kappa21, ma22 = kappa22, NA), xreg = Y, method = 'ML')
+
+# Wald test for coefficient of xreg being zero: p-values lower than 0.05 indicates the xreg coefficient is non-zero.
+t_val1 <- coeftest(model21)[3]
+p_val1 <- coeftest(model21)[4]
+t_val2 <- coeftest(model22)[3]
+p_val2 <- coeftest(model22)[4]
+"
+#So far so good
+@rget t_val1 t_val2 p_val1 p_val2
+[t_val1, t_val2, p_val1, p_val2]
+
+#Now let's check GARCH
+#Doesn't work yet
+R"
+library(garchx)
+
+green_garch <- garchx(model21[['residuals']], order = c(1,1,0), ARCH = 0.101861, GARCH = 0.864376, xreg = model22[['residuals]])
+brown_garch <- garchx(model22[['residuals']], order = c(1,2,0), ARCH = 0.040892, GARCH = c(0.575928, 0.319538), xreg = model21[['residuals']])
+
+t_val1 <- coeftest(model21)[3]
+p_val1 <- coeftest(model21)[4]
+t_val2 <- coeftest(model22)[3]
+p_val2 <- coeftest(model22)[4]
+"
+@rget t_val1 t_val2 p_val1 p_val2
+[t_val1, t_val2, p_val1, p_val2]
+
 
 ##HISTOGRAMS OF t
 hist_standres_nee = Plots.histogram(chen_res, normalize=:pdf, label="Innovations")
