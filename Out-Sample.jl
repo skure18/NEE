@@ -44,7 +44,7 @@ var_es_plot_t = begin
     plot!(Green[1511:2090, 1], -Test_t[:, "ES_ali"], color=:red, label=false)
 end
 
-#GED and T DQ
+#GED and T DQ, for 1% VaR
 DQ_func(Test_1p, 0.01, 4)
 
 #MZ GED and T
