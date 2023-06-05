@@ -10,13 +10,13 @@ Plots.plot(BP[!, 1], BP[!, "Close"], title="BP", label=false, xlabel="Date", yla
 ADF_test(NEE[!, "Close"])
 ADF_test(BP[!, "Close"])
 
-#Log-return plots
+#Log return plots
 diffnee = diff(log.(NEE[!, "Close"]))
 diffbp = diff(log.(BP[!, "Close"]))
 Plots.plot(diffnee, title="Log-Return of NEE", legend=false)
 Plots.plot(diffbp, title="Log-Return of BP", legend=false)
 
-#ACF of log-return
+#ACF of log return
 ForecastPlots.acf(diffnee)
 ForecastPlots.acf(diffbp)
 
@@ -55,18 +55,11 @@ model_shell_dist = fit_brown[2]
 model_chen_dist = SkewedExponentialPower
 model_shell_dist = SkewedExponentialPower
 
-#Kendall's tau rank correlation on log-returns
-StatsBase.corkendall(diffnee, diffbp)
-
-#Find residuals
+#Residuals
 nee_res = residuals(model_chen)
 bp_res = residuals(model_shell)
 
-#Kendall's tau rank correlation on uniform residuals
-#StatsBase.corkendall(cdf(TDist(5.4, diffnee)), cdf(TDist(4.47, diffbp)))
-
-#ACF, ljung Box plots and ARCH-LM test again
-#We fail to reject stationarity
+#ACF, ljung Box plots and ARCH-LM on residuals
 acf_nee_stand = ForecastPlots.acf(nee_res)
 acf_nee_stand = xlabel!("Lag")
 acf_nee_stand = ylabel!("ACF")
@@ -87,22 +80,18 @@ acf_nee_sqrd = ForecastPlots.acf(nee_res.^2)
 acf_nee_sqrd = xlabel!("Lag")
 acf_nee_sqrd = ylabel!("ACF")
 
-
 lbt_nee_sqrd = LBT_plot(nee_res.^2, 10)
 lbt_nee_sqrd = xlabel!("Lag")
 lbt_nee_sqrd = ylabel!("p-value")
-
 
 acf_bp_sqrd = ForecastPlots.acf(bp_res.^2)
 acf_bp_sqrd = xlabel!("Lag")
 acf_bp_sqrd = ylabel!("ACF")
 
-
 lbt_bp_sqrd = LBT_plot(bp_res.^2, 10)
 lbt_bp_sqrd = xlabel!("Lag")
 lbt_bp_sqrd = ylabel!("p-value")
 
-#Fail to reject no lingering GARCH effect
 ARCHLMTest(nee_res, 1)
 ARCHLMTest(bp_res, 1)
 
@@ -150,8 +139,7 @@ p_val2 <- coeftest(model22)[4]
 @rget t_val1 t_val2 p_val1 p_val2
 [t_val1, t_val2, p_val1, p_val2]
 
-#Now let's check GARCH
-#Doesn't work yet
+#Checking second moments (doesn't work)
 R"
 library(garchx)
 
@@ -167,7 +155,7 @@ p_val2 <- coeftest(model22)[4]
 [t_val1, t_val2, p_val1, p_val2]
 
 
-##HISTOGRAMS OF t
+#Histograms of t-innovations
 hist_standres_nee = Plots.histogram(nee_res, normalize=:pdf, label="Innovations")
 dist_test = TDist(5.41935)
 hist_standres_nee = plot!(x->pdf(dist_test, x), xlim=xlims(), label="t-dist. Density", normalize=:pdf, color=:red)
@@ -180,8 +168,7 @@ hist_standres_bp = plot!(x->pdf(dist_test, x), xlim=xlims(), label="t-dist. Dens
 hist_standres_bp = xlabel!("Innovation")
 hist_standres_bp = ylabel!("Frequency")
 
-
-#HISTOGRAMS OF GED
+#Histograms of GED-innovations
 hist_ged_nee = Plots.histogram(nee_res, normalize=:pdf, label="Innovations")
 dist_test = SkewedExponentialPower(0, 1, 1.3)
 hist_ged_nee = plot!(x->pdf(dist_test, x), xlim=xlims(), label="GED Density", normalize=:pdf, color=:red)
@@ -193,41 +180,17 @@ dist_test = SkewedExponentialPower(0, 1, 1.2)
 hist_ged_bp = plot!(x->pdf(dist_test, x), xlim=xlims(), label="GED Density", normalize=:pdf, color=:red)
 hist_ged_bp = xlabel!("Innovation")
 hist_ged_bp = ylabel!("Frequency")
-##
-
-Plots.histogram(bp_res, normalize=:pdf, label="Distribution of Data")
-dist_test = SkewedExponentialPower(0, 1, 1.2)
-plot!(x->pdf(dist_test, x), xlim=xlims(), label="GED Distribution", normalize=:pdf)
-
-qqxd = qqplot(SkewedExponentialPower(0,1, 1.2), bp_res, color=:black)
-
 
 #Histogram of residuals
 hist_standres_nee = Hist_plot(nee_res, 5.4)
 hist_standres_nee = xlabel!("Residual")
 hist_standres_nee = ylabel!("Frequency")
 
-
 hist_standres_bp = Hist_plot(bp_res, 5)
 hist_standres_bp = xlabel!("Residual")
 hist_standres_bp = ylabel!("Frequency")
 
-
-#QQ plots of residuals
-qq_standres_nee = StatsPlots.qqplot(TDist(5.4), nee_res, color=:black)
-qq_standres_nee = xlabel!("Theoretical Quantiles")
-qq_standres_nee = ylabel!("Standardized Residuals")
-
-
-qq_standres_bp = StatsPlots.qqplot(TDist(5), bp_res, color=:black)
-qq_standres_bp = xlabel!("Theoretical Quantiles")
-qq_standres_bp = ylabel!("Standardized Residuals")
-
-
-pvalue(ExactOneSampleKSTest(nee_res, SkewedExponentialPower(0,1,1.3)), tail=:right)
-pvalue(ExactOneSampleKSTest(bp_res, SkewedExponentialPower(0,1,1.2)), tail=:right)
-
-
+#Copula estimation
 if model_chen_dist == TDist
     unif_chen = Distributions.cdf(model_chen_dist(model_chen.dist.coefs[1]), nee_res)
 else
@@ -239,13 +202,6 @@ if model_shell_dist == TDist
 else
     unif_shell = Distributions.cdf(SkewedExponentialPower(0, 1, 1.2), bp_res)
 end
-
-#Forecast one-sted-ahead return and volatility
-chen_osa_mean = predict(model_chen::UnivariateARCHModel, :return)
-chen_osa_vol = predict(model_chen::UnivariateARCHModel, :volatility)
-
-shell_osa_mean = predict(model_shell::UnivariateARCHModel, :return)
-shell_osa_vol = predict(model_shell::UnivariateARCHModel, :volatility)
 
 W = [unif_chen' ; unif_shell']
 
@@ -269,7 +225,7 @@ p_gaus = 2 .* vec(gaus_chain[:x]) .- 1
 #p1_t = 2 .* vec(t_chain[:x]) .- 1
 #p2_t = -log.(vec(t_chain[:y]))
 
-#t-Copula and bb7 by maximum likelihood
+#t-Copula and BB7 by maximum likelihood
 O = optimize(θ -> ℓ_t(θ, W), [-0.99,0.01], [0.99,50.], [0.,10.]) 
 θᵉ = Optim.minimizer(O)
 p1_t, p2_t = θᵉ
@@ -278,23 +234,13 @@ O = optimize(θ -> ℓ_bb7(θ, W), [1., 0.01], [50., 50.], [3., 3.])
 θᵉ = Optim.minimizer(O)
 p1_bb7, p2_bb7 = θᵉ
 
-#Results for table
+#Results
 meanpvec = [mean(p_gaus), mean(p1_t), mean(p2_t), mean(p_frank), mean(p_gumbel), mean(p_clayton), mean(p_joe), mean(p1_bb7), mean(p2_bb7), mean(p_amh)]
 varpvec = [var(p_gaus), var(p1_t), var(p2_t), var(p_frank), var(p_gumbel), var(p_clayton), var(p_joe), var(p1_bb7), var(p2_bb7), var(p_amh)]
 credpint = [quantile(p_gaus, [0.025,0.975]) [0, 0] [0, 0] quantile(p_frank, [0.025,0.975]) quantile(p_gumbel, [0.025,0.975]) quantile(p_clayton, [0.025,0.975]) quantile(p_joe, [0.025,0.975]) [0,0] [0,0] quantile(p_amh, [0.025,0.975])]'
 df = DataFrames.DataFrame([meanpvec varpvec credpint], :auto)
 
-
-#Compare t correlation matrix with gaus
-mean(p1_t)
-mean(p_gaus)
-
-#Compare bb7 parameters with joe and clayton
-mean(p1_bb7)
-mean(p2_bb7)
-mean(p_joe)
-mean(p_clayton)
-
+#MCMC plots
 hist_p_gaus = begin
     histogram(p_gaus, label = "MCMC samples", normalize=:pdf, title= "Gaussian Copula")
     vline!([mean(p_gaus)], label = false, color=:red)
@@ -359,6 +305,7 @@ hist_p_amh = begin
     ylabel!("Frequency")
 end
 
+#Copula plots
 X_clayton, Y_clayton = resample_data(Clayton, mean(p_clayton), 10000, model_chen_dist, model_chen, model_shell_dist, model_shell)
 X_frank, Y_frank = resample_data(Frank, mean(p_frank), 10000, model_chen_dist, model_chen, model_shell_dist, model_shell)
 X_joe, Y_joe = resample_data(Joe, mean(p_joe), 10000, model_chen_dist, model_chen, model_shell_dist, model_shell)
