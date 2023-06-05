@@ -10,7 +10,7 @@ function ADF_test(series,lags = 10)
     hline!([0.05], color=:blue)   
 end
 
-#Ljung Box Test Cheniere and Shell
+#Ljung Box Test NEE and BP
 function LBT_plot(stock, lag)
     x = zeros(10, 1)
     for i in 1:lag
@@ -49,10 +49,10 @@ function LE_plot(series, demean = true)
 end
 
 #Simulated log-returns
-function sim_logreturns(modelchen, modelshell, X, Y)
-    chen_hat = predict(modelchen, :return) .+ predict(modelchen, :volatility) .* X
-    shell_hat = predict(modelshell, :return) .+ predict(modelshell, :volatility) .* Y
-    chen_hat, shell_hat
+function sim_logreturns(modelnee, modelbp, X, Y)
+    nee_hat = predict(modelnee, :return) .+ predict(modelnee, :volatility) .* X
+    bp_hat = predict(modelbp, :return) .+ predict(modelbp, :volatility) .* Y
+    nee_hat, bp_hat
 end
 
 function best_model(returns)
