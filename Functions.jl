@@ -10,7 +10,7 @@ function ADF_test(series,lags = 10)
     hline!([0.05], color=:blue)   
 end
 
-#Ljung Box Test NEE and BP
+#Ljung Box Test
 function LBT_plot(stock, lag)
     x = zeros(10, 1)
     for i in 1:lag
@@ -211,6 +211,7 @@ end
     end
 end
  
+# BB7 does not work
 @model function fit_BB7_copula(W; ε = 1e-6)
     x ~ Uniform(ε,1-ε)
     y ~ Uniform(ε,1-ε)
@@ -234,19 +235,6 @@ end
     for i in 1:length(W[1,:])
         W[:,i] ~ AliMikhailHaq(x)
     end
-end
- 
-# VaR and ES 
-function vares(P, alpha = 0.05)
-    sort_P = sort(P)
-    k = floor(Int, length(sort_P) * alpha)
-    VaR = abs(sort_P[k])
-    ES_pos = 0
-    for i in 1:k
-        ES_pos = sort_P[i]/k + ES_pos
-    end
-    ES = -ES_pos
-    [VaR, ES]
 end
 
 # VaR
