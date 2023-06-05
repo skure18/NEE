@@ -14,7 +14,7 @@ Brown_returns = diff(log.(Brown_close))
 windowsize = 1510
 chainsize = 1000
 N = 100000
-Test_5p = Risk(Green_close, Brown_close, windowsize, chainsize, N)
+Test = Risk(Green_close, Brown_close, windowsize, chainsize, N)
 
 #DQ Test
 return_portfolio = zeros(length(Green_returns)-windowsize)
