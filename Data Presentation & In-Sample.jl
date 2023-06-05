@@ -20,7 +20,7 @@ Plots.plot(diffbp, title="Log-Return of BP", legend=false)
 ForecastPlots.acf(diffnee)
 ForecastPlots.acf(diffbp)
 
-#Ljung Box Test 
+#Ljung Box test 
 LBT_plot(diffnee, 10)
 LBT_plot(diffbp, 10)
 
