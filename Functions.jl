@@ -99,19 +99,19 @@ function best_model(returns)
 end
 
 #Fix GED
-function best_model(returns)
-    fit_sGED = selectmodel(GARCH, returns; meanspec=ARMA, criterion=aic, dist=StdT, maxlags=3)
-    fit_tGED = selectmodel(TGARCH, returns; meanspec=ARMA, criterion=aic, dist=StdT, maxlags=3)
-
-    models = [fit_sGED, fit_tGED]
-    models_aic = [aic(fit_sGED), aic(fit_tGED)]
-    min_aic = findmin(models_aic)[2]
-    best_fit = models[min_aic]
-
-    best_dist = TDist
-
-    return([best_fit, best_dist])
-end
+#function best_model(returns)
+#    fit_sGED = selectmodel(GARCH, returns; meanspec=ARMA, criterion=aic, dist=StdT, maxlags=3)
+#    fit_tGED = selectmodel(TGARCH, returns; meanspec=ARMA, criterion=aic, dist=StdT, maxlags=3)
+#
+#    models = [fit_sGED, fit_tGED]
+#    models_aic = [aic(fit_sGED), aic(fit_tGED)]
+#    min_aic = findmin(models_aic)[2]
+#    best_fit = models[min_aic]
+#
+#    best_dist = TDist
+#
+#    return([best_fit, best_dist])
+#end
 
 # For step (c) + (d)
 function resample_data(copula, par, n, best_dist_1, fit_1, best_dist_2, fit_2)
