@@ -1,11 +1,11 @@
 using MarketData, DataFrames, Plots, ARCHModels, Distributions, Turing, BivariateCopulas, StatsPlots, ProgressBars, Statistics, HypothesisTests, ForecastEval, Optim, CSV, PlutoUI, MessyTimeSeries, ForecastPlots, Statsbase, StatsPlots, TimeSeries, GLM
 
 #Data
-Green = DataFrames.DataFrame(yahoo("NEE", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2023, 4, 25))))
-Brown = DataFrames.DataFrame(yahoo("BP", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2023, 4, 25))))
+NEE = DataFrames.DataFrame(yahoo("NEE", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2023, 4, 25))))
+BP = DataFrames.DataFrame(yahoo("BP", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2023, 4, 25))))
 
-closene = Green[:,5]
-closebp = Brown[:,5]
+closene = NEE[:,5]
+closebp = BP[:,5]
 
 diffne = diff(log.(closene))
 diffbp = diff(log.(diffbp))
