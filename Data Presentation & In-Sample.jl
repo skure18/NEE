@@ -6,7 +6,7 @@ BP = DataFrame(MarketData.yahoo("BP", YahooOpt(period1=DateTime(2015, 1, 1), per
 Plots.plot(NEE[!, 1], NEE[!, "Close"], title="NEE", label=false, xlabel="Date", ylabel="Closing Price")
 Plots.plot(BP[!, 1], BP[!, "Close"], title="BP", label=false, xlabel="Date", ylabel="Closing Price")
 
-#ADF of prices
+#ADF test of prices
 ADF_test(NEE[!, "Close"])
 ADF_test(BP[!, "Close"])
 
@@ -16,7 +16,7 @@ diffbp = diff(log.(BP[!, "Close"]))
 Plots.plot(diffnee, title="Log-Return of NEE", legend=false)
 Plots.plot(diffbp, title="Log-Return of BP", legend=false)
 
-#Acf of log-return
+#ACF of log-return
 ForecastPlots.acf(diffnee)
 ForecastPlots.acf(diffbp)
 
@@ -25,12 +25,8 @@ LBT_plot(diffnee, 10)
 LBT_plot(diffbp, 10)
 
 #Histograms vs normal distribution
-Hist_plot(Green_returns)
-Hist_plot(Brown_returns)
-
 Hist_plot(diffnee)
 Hist_plot(diffbp)
-
 
 #QQ-plots and kurtosis
 StatsPlots.qqplot(Normal(Statistics.mean(diffnee),Statistics.std(diffnee)), diffnee, color=:black)
@@ -42,7 +38,6 @@ Distributions.kurtosis(diffbp)
 #Leverage effect
 LE_plot(diffnee)
 LE_plot(diffbp)
-
 
 #ARCH-LM test
 ARCHLMTest(diffnee, 1)
