@@ -14,13 +14,13 @@ diffbp = diff(log.(diffbp))
 windowsize = 1510
 chainsize = 1000
 N = 100000
-Test = Risk(closenee, diffbp, windowsize, chainsize, N)
+Test = Risk(closenee, closebp, windowsize, chainsize, N)
 
 #DQ Test
 return_portfolio = zeros(length(diffnee)-windowsize)
 for i = windowsize+1:length(diffnee)
     Green_closer = closenee[i-1]
-    Brown_closer = diffbp[i-1]
+    Brown_closer = closebp[i-1]
     Green_return = diffnee[i]
     Brown_return = diffbp[i]
     
