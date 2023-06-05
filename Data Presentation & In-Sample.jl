@@ -126,8 +126,8 @@ phi22 = model2.meanspec.coefs[3]
 kappa21 = model2.meanspec.coefs[4]
 kappa22 = phi22 = model2.meanspec.coefs[5]
 
-Y = Green_returns
-X = Brown_returns
+Y = diffnee
+X = diffbp
 
 @rput Y X int1 int2 phi11 phi12 phi13 phi21 phi22 kappa11 kappa12 kappa13 kappa21 kappa22
 
