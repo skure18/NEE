@@ -59,7 +59,7 @@ model_shell_dist = SkewedExponentialPower
 nee_res = residuals(model_chen)
 bp_res = residuals(model_shell)
 
-#ACF, ljung Box plots and ARCH-LM on residuals
+#ACF, ljung Box plots and ARCH-LM of residuals
 acf_nee_stand = ForecastPlots.acf(nee_res)
 acf_nee_stand = xlabel!("Lag")
 acf_nee_stand = ylabel!("ACF")
