@@ -1,55 +1,55 @@
 using MarketData, DataFrames, Plots, ARCHModels, Distributions, Turing, BivariateCopulas, StatsPlots, ProgressBars, Statistics, HypothesisTests, ForecastEval, Optim, CSV, PlutoUI, MessyTimeSeries, ForecastPlots, Statsbase, StatsPlots, TimeSeries, GLM
 
 #Load data and plot prices
-Cheniere = DataFrame(MarketData.yahoo("NEE", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2020, 12, 31))))
-Shell = DataFrame(MarketData.yahoo("BP", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2020, 12, 31))))
-Plots.plot(Cheniere[!, 1], Cheniere[!, "Close"], title="Cheniere", label=false, xlabel="Date", ylabel="Closing Price")
-Plots.plot(Shell[!, 1], Shell[!, "Close"], title="Shell", label=false, xlabel="Date", ylabel="Closing Price")
+NEE = DataFrame(MarketData.yahoo("NEE", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2020, 12, 31))))
+BP = DataFrame(MarketData.yahoo("BP", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2020, 12, 31))))
+Plots.plot(NEE[!, 1], NEE[!, "Close"], title="NEE", label=false, xlabel="Date", ylabel="Closing Price")
+Plots.plot(BP[!, 1], BP[!, "Close"], title="BP", label=false, xlabel="Date", ylabel="Closing Price")
 
 #ADF of prices
-ADF_test(Cheniere[!, "Close"])
-ADF_test(Shell[!, "Close"])
+ADF_test(NEE[!, "Close"])
+ADF_test(BP[!, "Close"])
 
 #Log-return plots
-diffchen = diff(log.(Cheniere[!, "Close"]))
-diffshell = diff(log.(Shell[!, "Close"]))
-Plots.plot(diffchen, title="Log-Return of Cheniere", legend=false)
-Plots.plot(diffshell, title="Log-Return of Shell", legend=false)
+diffnee = diff(log.(NEE[!, "Close"]))
+diffbp = diff(log.(BP[!, "Close"]))
+Plots.plot(diffnee, title="Log-Return of NEE", legend=false)
+Plots.plot(diffbp, title="Log-Return of BP", legend=false)
 
 #Acf of log-return
-ForecastPlots.acf(diffchen)
-ForecastPlots.acf(diffshell)
+ForecastPlots.acf(diffnee)
+ForecastPlots.acf(diffbp)
 
-#Ljung Box Test Cheniere and Shell
-LBT_plot(diffchen, 10)
-LBT_plot(diffshell, 10)
+#Ljung Box Test NEE and BP
+LBT_plot(diffnee, 10)
+LBT_plot(diffbp, 10)
 
 #Histograms vs normal distribution
 Hist_plot(Green_returns)
 Hist_plot(Brown_returns)
 
-Hist_plot(diffchen)
-Hist_plot(diffshell)
+Hist_plot(diffnee)
+Hist_plot(diffbp)
 
 
 #QQ-plots and kurtosis
-StatsPlots.qqplot(Normal(Statistics.mean(diffchen),Statistics.std(diffchen)), diffchen, color=:black)
-StatsPlots.qqplot(Normal(mean(diffshell),std(diffshell)), diffshell, color=:black)
+StatsPlots.qqplot(Normal(Statistics.mean(diffnee),Statistics.std(diffnee)), diffnee, color=:black)
+StatsPlots.qqplot(Normal(mean(diffbp),std(diffbp)), diffbp, color=:black)
 
-Distributions.kurtosis(diffchen)
-Distributions.kurtosis(diffshell)
+Distributions.kurtosis(diffnee)
+Distributions.kurtosis(diffbp)
 
 #Leverage effect
-LE_plot(diffchen)
-LE_plot(diffshell)
+LE_plot(diffnee)
+LE_plot(diffbp)
 
 
 #ARCH-LM test
-ARCHLMTest(diffchen, 1)
-ARCHLMTest(diffshell, 1)
+ARCHLMTest(diffnee, 1)
+ARCHLMTest(diffbp, 1)
 
-fit_green = best_model(diffchen)
-fit_brown = best_model(diffshell)
+fit_green = best_model(diffnee)
+fit_brown = best_model(diffbp)
 
 model_chen = fit_green[1]
 model_shell = fit_brown[1]
@@ -61,59 +61,59 @@ model_chen_dist = SkewedExponentialPower
 model_shell_dist = SkewedExponentialPower
 
 #Kendall's tau rank correlation on log-returns
-StatsBase.corkendall(diffchen, diffshell)
+StatsBase.corkendall(diffnee, diffbp)
 
 #Find residuals
-chen_res = residuals(model_chen)
-shell_res = residuals(model_shell)
+nee_res = residuals(model_chen)
+bp_res = residuals(model_shell)
 
 #Kendall's tau rank correlation on uniform residuals
-#StatsBase.corkendall(cdf(TDist(5.4, diffchen)), cdf(TDist(4.47, diffshell)))
+#StatsBase.corkendall(cdf(TDist(5.4, diffnee)), cdf(TDist(4.47, diffbp)))
 
 #ACF, ljung Box plots and ARCH-LM test again
-#We fail to reject stationarity - very nice
-acf_nee_stand = ForecastPlots.acf(chen_res)
+#We fail to reject stationarity
+acf_nee_stand = ForecastPlots.acf(nee_res)
 acf_nee_stand = xlabel!("Lag")
 acf_nee_stand = ylabel!("ACF")
 
-lbt_nee_stand = LBT_plot(chen_res, 10)
+lbt_nee_stand = LBT_plot(nee_res, 10)
 lbt_nee_stand = xlabel!("Lag")
 lbt_nee_stand = ylabel!("p-value")
 
-acf_bp_stand = ForecastPlots.acf(shell_res)
+acf_bp_stand = ForecastPlots.acf(bp_res)
 acf_bp_stand = xlabel!("Lag")
 acf_bp_stand = ylabel!("ACF")
 
-lbt_bp_stand = LBT_plot(shell_res, 10)
+lbt_bp_stand = LBT_plot(bp_res, 10)
 lbt_bp_stand = xlabel!("Lag")
 lbt_bp_stand = ylabel!("p-value")
 
-acf_nee_sqrd = ForecastPlots.acf(chen_res.^2)
+acf_nee_sqrd = ForecastPlots.acf(nee_res.^2)
 acf_nee_sqrd = xlabel!("Lag")
 acf_nee_sqrd = ylabel!("ACF")
 
 
-lbt_nee_sqrd = LBT_plot(chen_res.^2, 10)
+lbt_nee_sqrd = LBT_plot(nee_res.^2, 10)
 lbt_nee_sqrd = xlabel!("Lag")
 lbt_nee_sqrd = ylabel!("p-value")
 
 
-acf_bp_sqrd = ForecastPlots.acf(shell_res.^2)
+acf_bp_sqrd = ForecastPlots.acf(bp_res.^2)
 acf_bp_sqrd = xlabel!("Lag")
 acf_bp_sqrd = ylabel!("ACF")
 
 
-lbt_bp_sqrd = LBT_plot(shell_res.^2, 10)
+lbt_bp_sqrd = LBT_plot(bp_res.^2, 10)
 lbt_bp_sqrd = xlabel!("Lag")
 lbt_bp_sqrd = ylabel!("p-value")
 
 #Fail to reject no lingering GARCH effect
-ARCHLMTest(chen_res, 1)
-ARCHLMTest(shell_res, 1)
+ARCHLMTest(nee_res, 1)
+ARCHLMTest(bp_res, 1)
 
 #Test for cross-equation effects
-modelone = best_model(diffchen)
-modeltwo = best_model(diffshell)
+modelone = best_model(diffnee)
+modeltwo = best_model(diffbp)
 model1 = modelone[1]
 model2 = modeltwo[1]
 
@@ -151,7 +151,7 @@ p_val1 <- coeftest(model21)[4]
 t_val2 <- coeftest(model22)[3]
 p_val2 <- coeftest(model22)[4]
 "
-#So far so good
+
 @rget t_val1 t_val2 p_val1 p_val2
 [t_val1, t_val2, p_val1, p_val2]
 
@@ -173,13 +173,13 @@ p_val2 <- coeftest(model22)[4]
 
 
 ##HISTOGRAMS OF t
-hist_standres_nee = Plots.histogram(chen_res, normalize=:pdf, label="Innovations")
+hist_standres_nee = Plots.histogram(nee_res, normalize=:pdf, label="Innovations")
 dist_test = TDist(5.41935)
 hist_standres_nee = plot!(x->pdf(dist_test, x), xlim=xlims(), label="t-dist. Density", normalize=:pdf, color=:red)
 hist_standres_nee = xlabel!("Innovation")
 hist_standres_nee = ylabel!("Frequency")
 
-hist_standres_bp = Plots.histogram(shell_res, normalize=:pdf, label="Innovations")
+hist_standres_bp = Plots.histogram(bp_res, normalize=:pdf, label="Innovations")
 dist_test = TDist(5.00899)
 hist_standres_bp = plot!(x->pdf(dist_test, x), xlim=xlims(), label="t-dist. Density", normalize=:pdf, color=:red)
 hist_standres_bp = xlabel!("Innovation")
@@ -187,63 +187,62 @@ hist_standres_bp = ylabel!("Frequency")
 
 
 #HISTOGRAMS OF GED
-hist_ged_nee = Plots.histogram(chen_res, normalize=:pdf, label="Innovations")
+hist_ged_nee = Plots.histogram(nee_res, normalize=:pdf, label="Innovations")
 dist_test = SkewedExponentialPower(0, 1, 1.3)
 hist_ged_nee = plot!(x->pdf(dist_test, x), xlim=xlims(), label="GED Density", normalize=:pdf, color=:red)
 hist_ged_nee = xlabel!("Innovation")
 hist_ged_nee = ylabel!("Frequency")
 
-hist_ged_bp = Plots.histogram(shell_res, normalize=:pdf, label="Innovations")
+hist_ged_bp = Plots.histogram(bp_res, normalize=:pdf, label="Innovations")
 dist_test = SkewedExponentialPower(0, 1, 1.2)
 hist_ged_bp = plot!(x->pdf(dist_test, x), xlim=xlims(), label="GED Density", normalize=:pdf, color=:red)
 hist_ged_bp = xlabel!("Innovation")
 hist_ged_bp = ylabel!("Frequency")
 ##
 
-Plots.histogram(shell_res, normalize=:pdf, label="Distribution of Data")
+Plots.histogram(bp_res, normalize=:pdf, label="Distribution of Data")
 dist_test = SkewedExponentialPower(0, 1, 1.2)
 plot!(x->pdf(dist_test, x), xlim=xlims(), label="GED Distribution", normalize=:pdf)
 
-qqxd = qqplot(SkewedExponentialPower(0,1, 1.2), shell_res, color=:black)
+qqxd = qqplot(SkewedExponentialPower(0,1, 1.2), bp_res, color=:black)
 
 
 #Histogram of residuals
-hist_standres_nee = Hist_plot(chen_res, 5.4)
+hist_standres_nee = Hist_plot(nee_res, 5.4)
 hist_standres_nee = xlabel!("Residual")
 hist_standres_nee = ylabel!("Frequency")
 
 
-hist_standres_bp = Hist_plot(shell_res, 5)
+hist_standres_bp = Hist_plot(bp_res, 5)
 hist_standres_bp = xlabel!("Residual")
 hist_standres_bp = ylabel!("Frequency")
 
 
 #QQ plots of residuals
-qq_standres_nee = StatsPlots.qqplot(TDist(5.4), chen_res, color=:black)
+qq_standres_nee = StatsPlots.qqplot(TDist(5.4), nee_res, color=:black)
 qq_standres_nee = xlabel!("Theoretical Quantiles")
 qq_standres_nee = ylabel!("Standardized Residuals")
 
 
-qq_standres_bp = StatsPlots.qqplot(TDist(5), shell_res, color=:black)
+qq_standres_bp = StatsPlots.qqplot(TDist(5), bp_res, color=:black)
 qq_standres_bp = xlabel!("Theoretical Quantiles")
 qq_standres_bp = ylabel!("Standardized Residuals")
 
 
-pvalue(ExactOneSampleKSTest(chen_res, SkewedExponentialPower(0,1,1.3)), tail=:right)
-pvalue(ExactOneSampleKSTest(shell_res, SkewedExponentialPower(0,1,1.2)), tail=:right)
+pvalue(ExactOneSampleKSTest(nee_res, SkewedExponentialPower(0,1,1.3)), tail=:right)
+pvalue(ExactOneSampleKSTest(bp_res, SkewedExponentialPower(0,1,1.2)), tail=:right)
 
 
-#Dependence
 if model_chen_dist == TDist
-    unif_chen = Distributions.cdf(model_chen_dist(model_chen.dist.coefs[1]), chen_res)
+    unif_chen = Distributions.cdf(model_chen_dist(model_chen.dist.coefs[1]), nee_res)
 else
-    unif_chen = Distributions.cdf(SkewedExponentialPower(0, 1, 1.3), chen_res)
+    unif_chen = Distributions.cdf(SkewedExponentialPower(0, 1, 1.3), nee_res)
 end
 
 if model_shell_dist == TDist
-    unif_shell = Distributions.cdf(model_shell_dist(model_shell.dist.coefs[1]), shell_res)
+    unif_shell = Distributions.cdf(model_shell_dist(model_shell.dist.coefs[1]), bp_res)
 else
-    unif_shell = Distributions.cdf(SkewedExponentialPower(0, 1, 1.2), shell_res)
+    unif_shell = Distributions.cdf(SkewedExponentialPower(0, 1, 1.2), bp_res)
 end
 
 #Forecast one-sted-ahead return and volatility
@@ -253,7 +252,6 @@ chen_osa_vol = predict(model_chen::UnivariateARCHModel, :volatility)
 shell_osa_mean = predict(model_shell::UnivariateARCHModel, :return)
 shell_osa_vol = predict(model_shell::UnivariateARCHModel, :volatility)
 
-#Do some copula shit
 W = [unif_chen' ; unif_shell']
 
 clayton_chain = sample(fit_Clayton_copula(W), NUTS(), 1000)
@@ -378,48 +376,48 @@ X_t, Y_t = resample_data_2var(BivariateTCopula, p1_t, p2_t, 10000, model_chen_di
 
 scatter_gaus = begin
     scatter(X_gaus, Y_gaus, label=false)
-    scatter!(chen_res, shell_res, label=false)
+    scatter!(nee_res, bp_res, label=false)
     title!("Gaussian Copula")
 end
 
 scatter_t = begin
     scatter(X_t, Y_t, label=false)
-    scatter!(chen_res, shell_res, label=false)
+    scatter!(nee_res, bp_res, label=false)
     title!("t-Copula")
 end
 
 scatter_frank = begin
     scatter(X_frank, Y_frank, label=false)
-    scatter!(chen_res, shell_res, label=false)
+    scatter!(nee_res, bp_res, label=false)
     title!("Frank Copula")
 end
 
 scatter_gumbel = begin
     scatter(X_gumbel, Y_gumbel, label=false)
-    scatter!(chen_res, shell_res, label=false)
+    scatter!(nee_res, bp_res, label=false)
     title!("Gumbel Copula")
 end
 
 scatter_clayton = begin
     scatter(X_clayton, Y_clayton, label=false)
-    scatter!(chen_res, shell_res, label=false)
+    scatter!(nee_res, bp_res, label=false)
     title!("Clayton Copula")
 end
 
 scatter_joe = begin
     scatter(X_joe, Y_joe, label=false)
-    scatter!(chen_res, shell_res, label=false)
+    scatter!(nee_res, bp_res, label=false)
     title!("Joe Copula")
 end
 
 scatter_bb7 = begin
     scatter(X_bb7, Y_bb7, label=false)
-    scatter!(chen_res, shell_res, label=false)
+    scatter!(nee_res, bp_res, label=false)
     title!("BB7 Copula")
 end
 
 scatter_amh = begin
     scatter(X_amh, Y_amh, label=false)
-    scatter!(chen_res, shell_res, label=false)
+    scatter!(nee_res, bp_res, label=false)
     title!("Ali-Mikhail-Haq Copula")
 end
