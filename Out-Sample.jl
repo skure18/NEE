@@ -1,6 +1,6 @@
 using MarketData, DataFrames, Plots, ARCHModels, Distributions, Turing, BivariateCopulas, StatsPlots, ProgressBars, Statistics, HypothesisTests, ForecastEval, Optim, CSV, PlutoUI, MessyTimeSeries, ForecastPlots, Statsbase, StatsPlots, TimeSeries, GLM
 
-# Data
+#Data
 Green = DataFrames.DataFrame(yahoo("NEE", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2023, 4, 25))))
 Brown = DataFrames.DataFrame(yahoo("BP", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2023, 4, 25))))
 
