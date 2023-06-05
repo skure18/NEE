@@ -4,24 +4,24 @@ using MarketData, DataFrames, Plots, ARCHModels, Distributions, Turing, Bivariat
 NEE = DataFrames.DataFrame(yahoo("NEE", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2023, 4, 25))))
 BP = DataFrames.DataFrame(yahoo("BP", YahooOpt(period1=DateTime(2015, 1, 1), period2=DateTime(2023, 4, 25))))
 
-closene = NEE[:,5]
+closenee = NEE[:,5]
 closebp = BP[:,5]
 
-diffne = diff(log.(closene))
+diffne = diff(log.(closenee))
 diffbp = diff(log.(diffbp))
 
 # Risk Forecasting Procedure
 windowsize = 1510
 chainsize = 1000
 N = 100000
-Test = Risk(closene, diffbp, windowsize, chainsize, N)
+Test = Risk(closenee, diffbp, windowsize, chainsize, N)
 
 #DQ Test
-return_portfolio = zeros(length(diffne)-windowsize)
-for i = windowsize+1:length(diffne)
-    Green_closer = closene[i-1]
+return_portfolio = zeros(length(diffnee)-windowsize)
+for i = windowsize+1:length(diffnee)
+    Green_closer = closenee[i-1]
     Brown_closer = diffbp[i-1]
-    Green_return = diffne[i]
+    Green_return = diffnee[i]
     Brown_return = diffbp[i]
     
     return_portfolio[i-windowsize] = 0.5 * Green_closer * (exp(Green_return) - 1) + 0.5 * Brown_closer * (exp(Brown_return) - 1)
